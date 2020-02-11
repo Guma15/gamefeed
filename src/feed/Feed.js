@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, ActivityIndicator, Text, View  } from 'react-native';
+import { FlatList, ActivityIndicator, Text, View, TouchableOpacity, Linking  } from 'react-native';
 import * as rssParser from 'react-native-rss-parser';
 
 export class FetchFeed extends React.Component {
@@ -9,13 +9,18 @@ export class FetchFeed extends React.Component {
     this.state ={ isLoading: true}
   }
 
+/*TODO Functionality to do multiple site fetching */
   componentDidMount(){
     return fetch('https://nichegamer.com/feed/')
       .then((response) => response.text())
       .then(async (responseData) => {
         const rss = await rssParser.parse(responseData);
         console.log(rss.title);
-        console.log(rss.items.length);
+	    this.setState({
+			isLoading: false,
+			dataSource: rss,
+		}, function(){
+		});
 	  })
       .catch((error) =>{
         console.error(error);
@@ -31,12 +36,21 @@ export class FetchFeed extends React.Component {
         </View>
       )
     }
-
+	/*TODO Pre-sort and clean output */
+	const data = this.state.dataSource.items;
+	console.log(data[0].published);
+	console.log(data[0].title);
+	console.log(data[0].id);
+	
     return(
+	/*TODO Add proper design for UI  */
       <View style={{flex: 1, paddingTop:20}}>
         <FlatList
-          data={this.state.dataSource}
-          renderItem={({item}) => <Text>{item.title}, {item.releaseYear}</Text>}
+          data={this.state.dataSource.items}
+          renderItem={({item}) => <TouchableOpacity onPress={() => Linking.openURL(item.id)}>
+		  <Text style={{color: 'blue'}}>
+		    {item.published} - {item.title}
+		  </Text></TouchableOpacity>}
           keyExtractor={({id}, index) => id}
         />
       </View>
